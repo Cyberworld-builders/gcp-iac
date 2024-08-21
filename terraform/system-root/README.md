@@ -88,13 +88,44 @@ gcloud beta billing accounts add-iam-policy-binding BILLING_ACCOUNT_ID \
     --role="roles/billing.user"
 ```
 
-### 9. Grant `roles/resourcemanager.projectCreator` to your System Root Service Account
+### 9.0 Grant `roles/resourcemanager.projectCreator` to your System Root Service Account
 ```sh
 gcloud organizations add-iam-policy-binding ORGANIZATION_ID \
     --member="serviceAccount:SERVICE_ACCOUNT_EMAIL" \
     --role="roles/resourcemanager.projectCreator"
 ```
 
+### 9.1 Create a KMS Key for Storage Folder Encryption
+We're going to store the Terraform state for our System Root in a Storage Folder in GCP. These objects need to be encrpyted for data protection. 
+
+**Enable the Cloud KMS API for the System Root Project**
+```sh
+gcloud services enable cloudkms.googleapis.com --project my-project-id
+```
+
+**Make sure billing is enabled for the System Root Project**
+```sh
+gcloud beta billing projects link myname-system-root --billing-account=012345-6789AB-CDEF01
+```
+
+**Create a KMS Key Ring:**
+   ```bash
+   gcloud kms keyrings create my-keyring \
+     --location us-central1 \
+     --project your-project-id
+   ```
+   * This command creates a key ring named `my-keyring` in the `us-central1` region of your project.
+
+**Create a KMS Key**
+```sh
+gcloud kms keys create my-key \
+  --keyring my-keyring \
+  --location us-central1 \
+  --project your-project-id \
+  --purpose encryption
+```
+   * This command creates a key named `my-key` within the `my-keyring` key ring. The key is intended for encryption 
+   
 ## II. Creating the Terraform-managed Resources Structure
 
 ### 10. Configure your `terraform.tfvars` file
