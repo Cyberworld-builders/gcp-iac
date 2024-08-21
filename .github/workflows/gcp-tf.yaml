@@ -1,0 +1,33 @@
+name: Terraform GCP
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up GCP credentials
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_TF_AGENT_KEY }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+        working-directory: ./terraform/tf-managed
+
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform/tf-managed
+
+      - name: Terraform Apply
+        run: terraform apply
+        working-directory: ./terraform/tf-managed
