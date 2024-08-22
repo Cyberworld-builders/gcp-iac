@@ -46,7 +46,3 @@ resource "google_service_account" "tf_managed_resources" {
   display_name = "Terraform Managed Resources"
   project      = google_project.tf_managed_resources.project_id
 }
-
-output "suffix" {
-  value = local.system_suffix  
-}
