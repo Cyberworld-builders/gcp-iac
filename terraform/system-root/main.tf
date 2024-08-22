@@ -5,6 +5,10 @@ terraform {
       version = "~> 4.0"
     }
   }
+  backend "gcs" {
+    bucket  = "tnclient-system-root-tfstate-394b68bc"
+    prefix  = "terraform/state"    
+  }
 }
 
 # create a randome string for a suffix
