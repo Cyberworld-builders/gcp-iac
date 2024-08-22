@@ -126,17 +126,46 @@ gcloud kms keys create my-key \
 ```
    * This command creates a key named `my-key` within the `my-keyring` key ring. The key is intended for encryption 
    
-### 9.2 Create a Storage Bucket for System Root Terraform State
-**Create Bucket**
+### 9.2 Create a Storage Bucket with KMS Encryption
+
+**Retrieve the Project Number**
 ```sh
-gcloud storage buckets create your-bucket-name \
-    --location us-central1 \
-    --project your-project-id \
-    --folder folders/your-folder-id
+gcloud projects describe myname-system-root --format="value(projectNumber)"
 ```
 
-### 9.2 Grant KMS Permissions to the System Root Service Account
-The System Root Service Account needs to be 
+**Grant Permissions to the Cloud Storage Service Account to Encrypt and Decrypt Cloud KMS**
+```sh
+gcloud kms keys add-iam-policy-binding myname-system-root-key \
+  --location us-central1 \
+  --keyring myname-system-root-keyring \
+  --member serviceAccount:service-<PROJECT_NUMBER>@gs-project-accounts.iam.gserviceaccount.com \
+  --role roles/cloudkms.cryptoKeyEncrypterDecrypter
+```
+
+**Create the Storage Bucket**
+```sh
+gcloud storage buckets create gs://myname-system-root-tfstate-394b68bc \
+  --location us-central1 \
+  --project myname-system-root \
+  --default-encryption-key="projects/myname-system-root/locations/us-central1/keyRings/myname-system-root-keyring/cryptoKeys/myname-system-root-key"
+```
+
+### 9.3 Grant Additional Permissions to the System Root Service Account to Manage Storage Buckets
+
+**Grant Object Viewer**
+```sh
+gcloud projects add-iam-policy-binding myname-system-root \
+    --member serviceAccount:myname-system-root@myname-system-root.iam.gserviceaccount.com \
+    --role roles/storage.objectViewer
+```
+
+**Grant Object Admin**
+```sh
+gcloud projects add-iam-policy-binding myname-system-root \
+  --member serviceAccount:myname-system-root@myname-system-root.iam.gserviceaccount.com \
+  --role roles/storage.objectAdmin
+
+```
 
 ## II. Creating the Terraform-managed Resources Structure
 
