@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "gcs" {
-    bucket  = "tnclient-system-root-tfstate-394b68bc"
+    bucket  = "myname-system-root-tfstate-394b68bc"
     prefix  = "terraform/state"    
   }
 }
@@ -18,7 +18,7 @@ resource "random_id" "bucket_name_suffix" {
 
 provider "google" {
   credentials = file("system-root-key.json")
-  project     = "tnclient-system-root"
+  project     = "myname-system-root"
   region      = "us-central1"
 }
 

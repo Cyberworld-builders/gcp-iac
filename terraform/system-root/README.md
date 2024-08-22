@@ -226,7 +226,7 @@ terraform {
   }
   backend "gcs" {
     # This bucket name will need to be updated
-    bucket  = "tnclient-system-root-tfstate-394b68bc" <----THIS...
+    bucket  = "myname-system-root-tfstate-394b68bc" <----THIS...
     prefix  = "terraform/state"    
   }
 }
@@ -238,7 +238,7 @@ resource "random_id" "bucket_name_suffix" {
 
 provider "google" {
   credentials = file("system-root-key.json")
-  project     = "tnclient-system-root" <----- ...AND THIS
+  project     = "myname-system-root" <----- ...AND THIS
   region      = "us-central1"
 }
 ```
