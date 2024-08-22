@@ -5,6 +5,10 @@ terraform {
       version = "~> 4.0"
     }
   }
+  backend "gcs" {
+    bucket  = "tnclient-system-root-tfstate-394b68bc"
+    prefix  = "terraform/state"    
+  }
 }
 
 # create a randome string for a suffix
@@ -45,8 +49,4 @@ resource "google_service_account" "tf_managed_resources" {
   account_id   = "tf-managed-resources"
   display_name = "Terraform Managed Resources"
   project      = google_project.tf_managed_resources.project_id
-}
-
-output "suffix" {
-  value = local.system_suffix  
 }

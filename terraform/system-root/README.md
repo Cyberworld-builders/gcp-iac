@@ -126,6 +126,47 @@ gcloud kms keys create my-key \
 ```
    * This command creates a key named `my-key` within the `my-keyring` key ring. The key is intended for encryption 
    
+### 9.2 Create a Storage Bucket with KMS Encryption
+
+**Retrieve the Project Number**
+```sh
+gcloud projects describe myname-system-root --format="value(projectNumber)"
+```
+
+**Grant Permissions to the Cloud Storage Service Account to Encrypt and Decrypt Cloud KMS**
+```sh
+gcloud kms keys add-iam-policy-binding myname-system-root-key \
+  --location us-central1 \
+  --keyring myname-system-root-keyring \
+  --member serviceAccount:service-<PROJECT_NUMBER>@gs-project-accounts.iam.gserviceaccount.com \
+  --role roles/cloudkms.cryptoKeyEncrypterDecrypter
+```
+
+**Create the Storage Bucket**
+```sh
+gcloud storage buckets create gs://myname-system-root-tfstate-394b68bc \
+  --location us-central1 \
+  --project myname-system-root \
+  --default-encryption-key="projects/myname-system-root/locations/us-central1/keyRings/myname-system-root-keyring/cryptoKeys/myname-system-root-key"
+```
+
+### 9.3 Grant Additional Permissions to the System Root Service Account to Manage Storage Buckets
+
+**Grant Object Viewer**
+```sh
+gcloud projects add-iam-policy-binding myname-system-root \
+    --member serviceAccount:myname-system-root@myname-system-root.iam.gserviceaccount.com \
+    --role roles/storage.objectViewer
+```
+
+**Grant Object Admin**
+```sh
+gcloud projects add-iam-policy-binding myname-system-root \
+  --member serviceAccount:myname-system-root@myname-system-root.iam.gserviceaccount.com \
+  --role roles/storage.objectAdmin
+
+```
+
 ## II. Creating the Terraform-managed Resources Structure
 
 ### 10. Configure your `terraform.tfvars` file
@@ -171,7 +212,38 @@ system_root_folder_id = "123454321"
 system_root_project_id = "myname-system-root"
 ```
 
-### 11. Apply Your Terraform Config
+### 11. Update the System Root Terraform State Bucket and Project Names
+These values cannot be passed into Terraform as variables. They currently represent values that were set on a development account. Update them before you proceed.
+```hcl
+# main.tf
+
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.0"
+    }
+  }
+  backend "gcs" {
+    # This bucket name will need to be updated
+    bucket  = "tnclient-system-root-tfstate-394b68bc" <----THIS...
+    prefix  = "terraform/state"    
+  }
+}
+
+# create a randome string for a suffix
+resource "random_id" "bucket_name_suffix" {
+  byte_length = 8
+}
+
+provider "google" {
+  credentials = file("system-root-key.json")
+  project     = "tnclient-system-root" <----- ...AND THIS
+  region      = "us-central1"
+}
+```
+
+### 12. Apply Your Terraform Config
 
 **Initialize your config**
 ```sh
